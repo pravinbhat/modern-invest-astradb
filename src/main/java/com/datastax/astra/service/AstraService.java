@@ -12,11 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.datastax.astra.dao.ActivityLogDao;
+import com.datastax.astra.dao.ActivityLogMapper;
+import com.datastax.astra.dao.ActivityLogMapperBuilder;
 import com.datastax.astra.dao.SessionManager;
 import com.datastax.astra.dao.SpacecraftInstrumentsDao;
 import com.datastax.astra.dao.SpacecraftJourneyDao;
 import com.datastax.astra.dao.SpacecraftMapper;
 import com.datastax.astra.dao.SpacecraftMapperBuilder;
+import com.datastax.astra.entity.ActivityLog;
 import com.datastax.astra.entity.SpacecraftJourneyCatalog;
 import com.datastax.astra.entity.SpacecraftLocationOverTime;
 import com.datastax.astra.entity.SpacecraftPressureOverTime;
@@ -40,6 +44,7 @@ public class AstraService {
     /** Driver Daos. */
     private SpacecraftJourneyDao     spacecraftJourneyDao;
     private SpacecraftInstrumentsDao spacecraftInstrumentsDao;
+    private ActivityLogDao activityLogDao;
     
     /**
      * Find all spacecrafts in the catalog.
@@ -136,6 +141,12 @@ public class AstraService {
         getSpaceCraftInstrumentsDao().insertTemperatureReadingAsync(readings)
                                      .whenComplete((res,ex) -> LOGGER.debug("{} temperature reading(s) inserted in {} millis", 
                                             readings.length, System.currentTimeMillis() - top));
+    }
+
+    public UUID insertActivity(ActivityLog activityLog) {
+        getActivityLogDao().upsertActivityLog(activityLog);
+        
+        return activityLog.getUserId();
     }
 
     /**
@@ -271,6 +282,15 @@ public class AstraService {
             this.spacecraftInstrumentsDao = mapper.spacecraftInstrumentsDao(cqlSession.getKeyspace().get());
         }
         return spacecraftInstrumentsDao;
+    }
+    
+    protected synchronized ActivityLogDao getActivityLogDao() {
+        if (activityLogDao == null) {
+            CqlSession cqlSession   = SessionManager.getInstance().connectToAstra();
+            ActivityLogMapper mapper = new ActivityLogMapperBuilder(cqlSession).build();
+            this.activityLogDao = mapper.activityLogDao(cqlSession.getKeyspace().get());
+        }
+        return activityLogDao;
     }
     
     /**

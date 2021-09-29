@@ -1,3 +1,13 @@
+CREATE TABLE IF NOT EXISTS activity_log (
+    user_id uuid,
+    activity_year text,
+    activity_id uuid,
+    activity_type text,
+    fund_name text,
+    amount double,
+    PRIMARY KEY ((user_id, activity_year), activity_id)
+) WITH CLUSTERING ORDER BY (activity_id desc);
+
 CREATE TABLE IF NOT EXISTS spacecraft_journey_catalog (
     spacecraft_name text,
     journey_id timeuuid,
