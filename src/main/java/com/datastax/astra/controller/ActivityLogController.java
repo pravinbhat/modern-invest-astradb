@@ -2,15 +2,11 @@ package com.datastax.astra.controller;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.datastax.astra.dao.SessionManager;
 import com.datastax.astra.entity.ActivityLog;
@@ -26,6 +21,7 @@ import com.datastax.astra.service.AstraService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -68,13 +64,20 @@ public class ActivityLogController {
 	 * Check if system is initialized and connected.
 	 */
 	@RequestMapping(method = GET)
-	@ApiOperation(value = "Status for component", response = String.class)
-	@ApiResponses({ @ApiResponse(code = 200, message = "System is connected"),
-			@ApiResponse(code = 401, message = "Invalid Credentials or not initialized") })
-	public ResponseEntity<String> checkConnection() {
+	@ApiOperation(value = "Get activities for users", response = String.class)
+	@ApiResponses({ @ApiResponse(code = 200, message = "User activities"),
+			@ApiResponse(code = 401, message = "Invalid user-id") })
+	public ResponseEntity<ActivityLog> getActivity(
+			@ApiParam(name="userId", value="User Id",example = "323fd898-fad4-4e2c-b248-80bb211f3407",required=true )
+			@RequestParam(value = "userId") UUID userId, 
+			@ApiParam(name="activityYear", value="Activity Year",example = "2021",required=true )
+			@RequestParam(value = "activityYear") String activityYear, 
+			@ApiParam(name="activityId", value="Activity Id",example = "5ca4c789-27f5-4102-8f2f-289ea2bfcdf6",required=true )
+			@RequestParam(value = "activityId") UUID activityId) {
+		ActivityLog log = astraService.getActivity(userId, activityYear, activityId);
 		SessionManager.getInstance().checkConnection();
-		LOGGER.info("Session is successfully initialized and connected");
-		return ResponseEntity.ok("Connection Successful");
+		LOGGER.info("Activity " + log.getActivityId());
+		return ResponseEntity.ok(log);
 	}
 
 }

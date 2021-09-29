@@ -3,7 +3,6 @@ package com.datastax.astra.dao;
 import java.util.UUID;
 
 import com.datastax.astra.entity.ActivityLog;
-import com.datastax.astra.entity.SpacecraftTemperatureOverTime;
 import com.datastax.oss.driver.api.core.PagingIterable;
 import com.datastax.oss.driver.api.mapper.annotations.Dao;
 import com.datastax.oss.driver.api.mapper.annotations.Insert;
